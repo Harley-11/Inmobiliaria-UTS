@@ -1,0 +1,118 @@
+/* ============================================================
+   INMOBILIARIA UTS - estilos.css
+   Tema propio sobre Bootstrap 5 (clases ims-*).
+   ============================================================ */
+
+:root {
+  --ims-temporal: #0f4c81;
+  --ims-acento:   #e9a319;
+  --ims-oscuro:   #0b2c4a;
+  --ims-suave:    #f3f6fb;
+}
+
+body.ims-body {
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  background-color: var(--ims-suave);
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.ims-main {
+  flex: 1 1 auto;
+}
+
+.ims-navbar {
+  background: linear-gradient(90deg, var(--ims-temporal), var(--ims-oscuro));
+  box-shadow: 0 2px 10px rgba(11, 44, 74, .25);
+}
+
+.ims-brand-badge {
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: var(--ims-acento);
+  color: #0b2c4a;
+  font-size: 1.1rem;
+}
+
+.ims-navlink {
+  border-radius: 999px;
+  font-weight: 500;
+}
+
+.ims-navlink:hover {
+  background: rgba(255, 255, 255, .12);
+  color: #fff;
+}
+
+.ims-userchip {
+  background: rgba(255, 255, 255, .1);
+  border-radius: 999px;
+  color: #fff;
+  font-weight: 600;
+  font-size: .9rem;
+}
+
+.ims-rolbadge {
+  background: var(--ims-acento);
+  color: #0b2c4a;
+}
+
+.ims-footer {
+  background: var(--ims-oscuro);
+  border-top: 4px solid var(--ims-acento);
+}
+
+.ims-slogan {
+  color: #ffd97a;
+  font-style: italic;
+}
+
+.ims-card {
+  border: none;
+  border-radius: 16px;
+  overflow: hidden;
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+
+.ims-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 22px rgba(11, 44, 74, .18);
+}
+
+.ims-btn {
+  background: var(--ims-temporal);
+  border: none;
+  color: #fff;
+}
+
+.ims-btn:hover {
+  background: var(--ims-oscuro);
+  color: #fff;
+}
+
+.ims-acento {
+  color: var(--ims-acento);
+}
+
+.ims-precio {
+  font-weight: 800;
+  color: var(--ims-temporal);
+}
+
+.ims-thumb {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+}
+
+.ims-hero {
+  background: linear-gradient(120deg, var(--ims-temporal), var(--ims-oscuro));
+  color: #fff;
+  border-radius: 20px;
+  padding: 3rem 2rem;
+}

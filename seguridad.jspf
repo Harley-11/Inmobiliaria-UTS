@@ -1,0 +1,27 @@
+<%--
+ seguridad.jspf - Control de sesion y de rol por pagina.
+ La pagina que incluye ESTE fragmento debio declarar antes:
+   String[] rolesPermitidos = { "administrador", "inmobiliaria", ... };
+ Debe venir ANTES utilidades.jspf (usa tieneAlgunRol)
+ y ANTES de cabecera.jspf (le provee el ctx).
+ Recupera de la sesion: idUsuario (Integer), nombre (String), rol (String),
+ roles (String CSV con todos los roles del usuario) y correo (String).
+ Redirige a login.jsp?error=sesion si no hay sesion, y a
+ login.jsp?error=permiso si el rol no esta habilitado para la pagina.
+--%>
+<%
+  Object idUsuarioObj = session.getAttribute("idUsuario");
+  String rolSesion    = (String) session.getAttribute("rol");
+  String nombreSesion = (String) session.getAttribute("nombre");
+  String rolesSesion  = (String) session.getAttribute("roles");
+  String ctx = request.getContextPath();
+
+  if (idUsuarioObj == null) {
+    response.sendRedirect(ctx + "/login.jsp?error=sesion");
+    return;
+  }
+  if (rolesPermitidos == null || !tieneAlgunRol(rolesSesion, rolesPermitidos)) {
+    response.sendRedirect(ctx + "/login.jsp?error=permiso");
+    return;
+  }
+%>

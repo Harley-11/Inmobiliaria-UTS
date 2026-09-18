@@ -1,0 +1,102 @@
+<%--
+ utilidades.jspf - Funciones de utilidad (hash, moneda, parsing, XSS, colores).
+ Se incluye de forma ESTATICA. Declara metodos compartidos via <%! %>.
+ El hash de claves usa el patron usuario:clave (claveCifrada).
+--%>
+<%@ page import="java.security.MessageDigest" %>
+<%@ page import="java.text.NumberFormat" %>
+<%@ page import="java.util.Locale" %>
+<%!
+  public String sha256(String texto) {
+    try {
+      MessageDigest md = MessageDigest.getInstance("SHA-256");
+      byte[] hash = md.digest(texto.getBytes("UTF-8"));
+      StringBuilder sb = new StringBuilder();
+      for (byte b : hash) {
+        sb.append(String.format("%02x", b));
+      }
+      return sb.toString();
+    } catch (Exception e) {
+      return "";
+    }
+  }
+
+  public String claveCifrada(String usuario, String clave) {
+    return sha256(usuario + ":" + clave);
+  }
+
+  public String pesos(double valor) {
+    NumberFormat nf = NumberFormat.getCurrencyInstance(new Locale("es", "CO"));
+    nf.setMaximumFractionDigits(0);
+    return nf.format(valor);
+  }
+
+  public int aEntero(String valor, int porDefecto) {
+    try {
+      if (valor == null) return porDefecto;
+      return Integer.parseInt(valor.trim());
+    } catch (NumberFormatException e) {
+      return porDefecto;
+    }
+  }
+
+  public double aDoble(String valor, double porDefecto) {
+    try {
+      if (valor == null) return porDefecto;
+      return Double.parseDouble(valor.trim().replace(",", "."));
+    } catch (NumberFormatException e) {
+      return porDefecto;
+    }
+  }
+
+  public String esc(String texto) {
+    if (texto == null) return "";
+    return texto
+      .replace("&", "&amp;")
+      .replace("<", "&lt;")
+      .replace(">", "&gt;")
+      .replace("\"", "&quot;");
+  }
+
+  public String colorEstado(String estado) {
+    if (estado == null) return "secondary";
+    switch (estado) {
+      case "disponible":      return "success";
+      case "arrendado":       return "info";
+      case "arrendada":       return "info";
+      case "vendido":         return "dark";
+      case "vendida":         return "dark";
+      case "inactivo":        return "secondary";
+      case "pendiente":       return "warning";
+      case "confirmada":      return "success";
+      case "aprobada":        return "success";
+      case "rechazada":       return "danger";
+      case "cancelado":       return "danger";
+      case "cancelada":       return "danger";
+      case "compra":          return "primary";
+      case "arriendo":        return "info";
+      default:                return "secondary";
+    }
+  }
+
+  public String capitalizar(String texto) {
+    if (texto == null || texto.trim().isEmpty()) return "";
+    return texto.substring(0, 1).toUpperCase() + texto.substring(1);
+  }
+
+  public boolean tieneRol(String rolesCsv, String rolBuscado) {
+    if (rolesCsv == null || rolBuscado == null) return false;
+    for (String r : rolesCsv.split(",")) {
+      if (r.trim().equals(rolBuscado.trim())) return true;
+    }
+    return false;
+  }
+
+  public boolean tieneAlgunRol(String rolesCsv, String[] permitidos) {
+    if (rolesCsv == null || permitidos == null) return false;
+    for (String p : permitidos) {
+      if (tieneRol(rolesCsv, p)) return true;
+    }
+    return false;
+  }
+%>

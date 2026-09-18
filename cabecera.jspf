@@ -1,0 +1,83 @@
+<%@ page pageEncoding="UTF-8" %>
+<%--
+ cabecera.jspf - Encabezado HTML + navbar compartidos.
+ La pagina que incluye ESTE fragmento debio declarar antes:
+   String ctx = request.getContextPath();     -> paginas publicas; en
+                                                paginas protegidas lo crea
+                                                seguridad.jspf (incluirlo
+                                                ANTES que cabecera.jspf)
+   String tituloPagina = "...";
+ Debe venir ANTES utilidades.jspf (usa esc, tieneRol, tieneAlgunRol).
+ NO declara variables de sesion propias (evita variables duplicadas);
+ lee la sesion directamente en cada uso.
+ Muestra menu publico si no hay sesion y menu segun rol si la hay.
+ Abre <main class="container my-4"> (lo cierra pie.jspf).
+--%>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <% String metaRefresh = (String) request.getAttribute("metaRefresh");
+       if (metaRefresh != null && !metaRefresh.trim().isEmpty()) { %>
+    <meta http-equiv="refresh" content="<%=metaRefresh%>">
+    <% } %>
+    <title><%=tituloPagina%> | Inmobiliaria UTS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="<%=ctx%>/css/estilos.css" rel="stylesheet">
+</head>
+<body class="ims-body">
+<nav class="navbar navbar-expand-lg navbar-dark ims-navbar sticky-top">
+    <div class="container-fluid">
+        <a class="navbar-brand d-flex align-items-center gap-2" href="<%=ctx%>/index.jsp">
+            <span class="ims-brand-badge"><i class="bi bi-house-heart-fill"></i></span>
+            <span>Inmobiliaria UTS</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navInmob"
+                aria-controls="navInmob" aria-expanded="false" aria-label="Alternar navegacion">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navInmob">
+            <ul class="navbar-nav me-auto gap-lg-1">
+                <li class="nav-item"><a class="nav-link ims-navlink" href="<%=ctx%>/index.jsp"><i class="bi bi-house"></i> Inicio</a></li>
+                <li class="nav-item"><a class="nav-link ims-navlink" href="<%=ctx%>/propiedades.jsp"><i class="bi bi-search"></i> Propiedades</a></li>
+                <% if (tieneAlgunRol((String) session.getAttribute("roles"), new String[]{"administrador"})) { %>
+                    <li class="nav-item"><a class="nav-link ims-navlink" href="<%=ctx%>/admin/panel.jsp"><i class="bi bi-speedometer2"></i> Panel admin</a></li>
+                <% } %>
+                <% if (tieneAlgunRol((String) session.getAttribute("roles"), new String[]{"inmobiliaria"})) { %>
+                    <li class="nav-item"><a class="nav-link ims-navlink" href="<%=ctx%>/agente/panel.jsp"><i class="bi bi-building"></i> Mi inmobiliaria</a></li>
+                <% } %>
+                <% if (tieneAlgunRol((String) session.getAttribute("roles"), new String[]{"cliente"})) { %>
+                    <li class="nav-item"><a class="nav-link ims-navlink" href="<%=ctx%>/cliente/panel.jsp"><i class="bi bi-person-heart"></i> Mi panel</a></li>
+                <% } %>
+            </ul>
+            <ul class="navbar-nav align-items-lg-center gap-lg-2">
+                <% if (session.getAttribute("idUsuario") != null) { %>
+                    <li class="nav-item">
+                        <span class="navbar-text ims-userchip d-inline-flex align-items-center gap-2 px-3 py-1">
+                            <i class="bi bi-person-circle fs-5"></i> <%=esc((String) session.getAttribute("nombre"))%>
+                        </span>
+                    </li>
+                    <li class="nav-item">
+                        <span class="navbar-text"><span class="badge rounded-pill ims-rolbadge fw-semibold px-3"><%=esc((String) session.getAttribute("rol"))%></span></span>
+                    </li>
+                    <li class="nav-item ms-lg-2">
+                        <a class="btn btn-outline-light btn-sm rounded-pill px-3" href="<%=ctx%>/logout.jsp"><i class="bi bi-box-arrow-right"></i> Salir</a>
+                    </li>
+                <% } else { %>
+                    <li class="nav-item">
+                        <a class="btn btn-outline-light btn-sm rounded-pill px-3" href="<%=ctx%>/login.jsp"><i class="bi bi-box-arrow-in-right"></i> Ingresar</a>
+                    </li>
+                    <li class="nav-item ms-lg-1">
+                        <a class="btn btn-light btn-sm rounded-pill px-3" href="<%=ctx%>/registro.jsp"><i class="bi bi-person-plus"></i> Registrarse</a>
+                    </li>
+                <% } %>
+            </ul>
+        </div>
+    </div>
+</nav>
+<main class="container ims-main my-4">

@@ -1,0 +1,104 @@
+<%--
+ conexion.jspf - Fragmento de conexion a MySQL para INMOBILIARIA UTS.
+ Se incluye de forma ESTATICA en cada pagina que necesite la base de datos:
+ <%@ include file="/WEB-INF/jspf/conexion.jspf" %>
+ Requiere tener el jar de mysql-connector en WEB-INF/lib.
+--%>
+<%@ page import="java.sql.*" %>
+<%!
+  public static final String DB_DRIVER = "com.mysql.cj.jdbc.Driver";
+  public static final String DB_URL =
+    "jdbc:mysql://localhost:3306/inmobiliaria_uts"
+    + "?useSSL=false&allowPublicKeyRetrieval=true"
+    + "&serverTimezone=America/Bogota&characterEncoding=UTF-8";
+  public static final String DB_USUARIO = "root";
+  public static final String DB_CLAVE = "";
+
+  public Connection abrirConexion() throws SQLException {
+    try {
+      Class.forName(DB_DRIVER);
+    } catch (ClassNotFoundException ex) {
+      throw new SQLException(
+        "No se encontro el driver de MySQL. Verifique que el jar de "
+        + "mysql-connector este en WEB-INF/lib.", ex);
+    }
+    return DriverManager.getConnection(DB_URL, DB_USUARIO, DB_CLAVE);
+  }
+
+  public void cerrar(AutoCloseable... recursos) {
+    for (int i = recursos.length - 1; i >= 0; i--) {
+      if (recursos[i] != null) {
+        try { recursos[i].close(); } catch (Exception ignorada) { }
+      }
+    }
+  }
+
+  public void deshacer(Connection con) {
+    if (con != null) {
+      try { con.rollback(); } catch (SQLException ignorada) { }
+    }
+  }
+
+  /**
+   * Inserta un registro en la tabla auditoria. Si falla NO interrumpe
+   * la operacion principal (la auditoria es valor agregado, no critica).
+   * El id_usuario debe referenciar un usuario existente (FK RESTRICT).
+   */
+  public void registrarAuditoria(Connection con, int idUsuario, String accion, String detalle) {
+    if (con == null) return;
+    PreparedStatement ps = null;
+    try {
+      ps = con.prepareStatement(
+        "INSERT INTO auditoria (id_usuario, accion, detalle) VALUES (?, ?, ?)");
+      ps.setInt(1, idUsuario);
+      ps.setString(2, accion);
+      ps.setString(3, detalle);
+      ps.executeUpdate();
+    } catch (SQLException ignorada) {
+      // La auditoria nunca debe romper el flujo principal.
+    } finally {
+      cerrar(ps);
+    }
+  }
+
+  /**
+   * Devuelve el id_inmobiliaria asociado a un usuario (o 0 si no tiene uno).
+   * Un usuario de rol inmobiliaria gestiona las propiedades de SU inmobiliaria.
+   */
+  public int idInmobiliariaDeUsuario(Connection con, int idUsuario) {
+    PreparedStatement ps = null;
+    ResultSet rs = null;
+    try {
+      ps = con.prepareStatement(
+        "SELECT id_inmobiliaria FROM inmobiliaria WHERE id_usuario = ?");
+      ps.setInt(1, idUsuario);
+      rs = ps.executeQuery();
+      if (rs.next()) return rs.getInt(1);
+    } catch (SQLException ignorada) {
+    } finally {
+      cerrar(rs, ps);
+    }
+    return 0;
+  }
+
+  /**
+   * Verifica que una propiedad pertenezca a la inmobiliaria dada.
+   * Protege el CRUD del agente frente a ids manipulados por otro.
+   */
+  public boolean esPropiedadDeInmobiliaria(Connection con, int idPropiedad, int idInmobiliaria) {
+    PreparedStatement ps = null;
+    ResultSet rs = null;
+    try {
+      ps = con.prepareStatement(
+        "SELECT 1 FROM propiedad WHERE id_propiedad = ? AND id_inmobiliaria = ?");
+      ps.setInt(1, idPropiedad);
+      ps.setInt(2, idInmobiliaria);
+      rs = ps.executeQuery();
+      return rs.next();
+    } catch (SQLException ignorada) {
+    } finally {
+      cerrar(rs, ps);
+    }
+    return false;
+  }
+%>

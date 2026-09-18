@@ -1,0 +1,64 @@
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%--
+ agente/img_principal.jsp - Marca una imagen como portada (orden = 1) de
+ una propiedad propia (POST). Desplaza el resto de ordenes para mantener
+ la portada al inicio.
+--%>
+<%
+  String[] rolesPermitidos = { "inmobiliaria" };
+%>
+<%@ include file="/WEB-INF/jspf/seguridad.jspf" %>
+<%@ include file="/WEB-INF/jspf/utilidades.jspf" %>
+<%@ include file="/WEB-INF/jspf/conexion.jspf" %>
+<%
+  int idUsuario = ((Integer) session.getAttribute("idUsuario")).intValue();
+  int idProp = aEntero(request.getParameter("id"), 0);
+  int idImagen = aEntero(request.getParameter("imagen"), 0);
+
+  Connection con = null;
+  PreparedStatement ps = null;
+  try {
+    con = abrirConexion();
+    con.setAutoCommit(false);
+    int idInmobiliaria = idInmobiliariaDeUsuario(con, idUsuario);
+    if (idProp <= 0 || idImagen <= 0 || idInmobiliaria <= 0
+        || !esPropiedadDeInmobiliaria(con, idProp, idInmobiliaria)) {
+      response.sendRedirect(ctx + "/agente/galeria.jsp?id=" + idProp + "&err=3");
+      return;
+    }
+    ps = con.prepareStatement(
+        "SELECT 1 FROM imagen_propiedad WHERE id_imagen = ? AND id_propiedad = ?");
+    ps.setInt(1, idImagen);
+    ps.setInt(2, idProp);
+    boolean existe = false;
+    java.sql.ResultSet rs = null;
+    try { rs = ps.executeQuery(); existe = rs.next(); } finally { if (rs != null) rs.close(); }
+    cerrar(ps);
+
+    if (!existe) {
+      response.sendRedirect(ctx + "/agente/galeria.jsp?id=" + idProp + "&err=3");
+      return;
+    }
+
+    ps = con.prepareStatement("UPDATE imagen_propiedad SET orden = orden + 1 WHERE id_propiedad = ?");
+    ps.setInt(1, idProp);
+    ps.executeUpdate();
+    cerrar(ps);
+
+    ps = con.prepareStatement("UPDATE imagen_propiedad SET orden = 1 WHERE id_imagen = ? AND id_propiedad = ?");
+    ps.setInt(1, idImagen);
+    ps.setInt(2, idProp);
+    ps.executeUpdate();
+    cerrar(ps);
+
+    con.commit();
+    registrarAuditoria(con, idUsuario, "IMAGEN", "Portada actualizada (imagen id=" + idImagen + ") propiedad id=" + idProp);
+    con.commit();
+    response.sendRedirect(ctx + "/agente/galeria.jsp?id=" + idProp + "&ok=3");
+  } catch (Exception e) {
+    e.printStackTrace();
+    response.sendRedirect(ctx + "/agente/galeria.jsp?id=" + idProp + "&err=2");
+  } finally {
+    cerrar(ps, con);
+  }
+%>
